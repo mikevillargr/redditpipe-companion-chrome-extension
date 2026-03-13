@@ -42,12 +42,16 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts
           
-          scp redditpipe-extension-${{ steps.get_version.outputs.VERSION }}.zip $VPS_USER@$VPS_HOST:/tmp/redditpipe-extension.zip
-          ssh $VPS_USER@$VPS_HOST "docker cp /tmp/redditpipe-extension.zip redditpipe-frontend:/usr/share/nginx/html/redditpipe-extension.zip"
+          # Start ssh-agent and add key
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+          
+          scp -o StrictHostKeyChecking=no redditpipe-extension-${{ steps.get_version.outputs.VERSION }}.zip $VPS_USER@$VPS_HOST:/tmp/redditpipe-extension.zip
+          ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "docker cp /tmp/redditpipe-extension.zip redditpipe-frontend:/usr/share/nginx/html/redditpipe-extension.zip"
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
