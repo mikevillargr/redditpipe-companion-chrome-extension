@@ -1,0 +1,59 @@
+name: Deploy Extension
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Get version from tag
+        id: get_version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION=$(jq -r .version redditpipe-extension/manifest.json)
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Update manifest version
+        run: |
+          cd redditpipe-extension
+          jq --arg version "${{ steps.get_version.outputs.VERSION }}" '.version = $version' manifest.json > manifest.tmp.json
+          mv manifest.tmp.json manifest.json
+      
+      - name: Create extension zip
+        run: |
+          cd redditpipe-extension
+          zip -r ../redditpipe-extension-${{ steps.get_version.outputs.VERSION }}.zip . -x "*.DS_Store" "*/.DS_Store"
+      
+      - name: Deploy to VPS
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts
+          
+          scp redditpipe-extension-${{ steps.get_version.outputs.VERSION }}.zip $VPS_USER@$VPS_HOST:/tmp/redditpipe-extension.zip
+          ssh $VPS_USER@$VPS_HOST "docker cp /tmp/redditpipe-extension.zip redditpipe-frontend:/usr/share/nginx/html/redditpipe-extension.zip"
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: redditpipe-extension-${{ steps.get_version.outputs.VERSION }}.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

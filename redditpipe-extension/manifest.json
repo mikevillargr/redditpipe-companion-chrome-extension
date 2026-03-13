@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "RedditPipe",
+  "version": "1.0.0",
+  "description": "Companion extension for RedditPipe — Reddit outreach pipeline manager",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "alarms",
+    "clipboardWrite",
+    "notifications",
+    "scripting",
+    "cookies"
+  ],
+  "host_permissions": [
+    "https://*.reddit.com/*",
+    "https://www.reddit.com/*",
+    "https://old.reddit.com/*",
+    "http://localhost:*/*",
+    "http://76.13.191.149:*/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.reddit.com/*", "https://old.reddit.com/*"],
+      "js": ["content/detector.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "options/options.html",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

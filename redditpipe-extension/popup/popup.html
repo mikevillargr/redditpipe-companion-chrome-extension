@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-brand">
+      <span class="logo">RP</span>
+      <span class="name">RedditPipe</span>
+    </div>
+    <span class="conn-dot disconnected" id="connDot" title="Disconnected"></span>
+  </div>
+
+  <!-- Account Selector -->
+  <div class="account-section" id="accountSection">
+    <div class="account-dropdown-wrap" id="dropdownWrap">
+      <div class="account-current" id="accountCurrent">
+        <div>
+          <div class="account-name" id="accountName">
+            <span class="u-prefix">u/</span><span id="usernameDisplay">—</span>
+          </div>
+          <div class="account-status-row">
+            <span class="status-chip" id="statusChip">—</span>
+            <span id="accountMiniStats"></span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button class="btn-logout" id="logoutBtn" title="Log out of Reddit">Logout</button>
+          <span class="dropdown-arrow" id="dropdownArrow">▼</span>
+        </div>
+      </div>
+      <div class="dropdown-menu" id="dropdownMenu"></div>
+    </div>
+  </div>
+
+  <!-- Safety Bar -->
+  <div class="safety-bar" id="safetyBar" style="display:none;">
+    <div class="safety-stat">
+      <div class="stat-label">
+        <span>Posts today</span>
+        <span id="postsTodayLabel">0/3</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill green" id="postsTodayFill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="safety-stat">
+      <div class="stat-label">
+        <span>Citation ratio</span>
+        <span id="citationRatioLabel">0:0</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill green" id="citationRatioFill" style="width:0%"></div>
+        <div class="target-line" style="left:25%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Warning Banners -->
+  <div class="warning-banner warn" id="limitWarning">Daily post limit reached — do organic posting or wait</div>
+  <div class="warning-banner warn" id="ratioWarning">Citation ratio high — do some organic posts first</div>
+
+  <!-- Account Mismatch Banner (preview mode) -->
+  <div class="mismatch-banner" id="mismatchBanner">
+    <span id="mismatchText"></span>
+    <button id="mismatchSwitchBtn">Switch & Go</button>
+  </div>
+
+  <!-- Not Logged In State -->
+  <div class="state-message" id="notLoggedIn" style="display:none;">
+    <div class="icon">👤</div>
+    <p>Not logged into Reddit</p>
+    <div id="loginAccountList" class="login-account-list"></div>
+    <button class="btn-sm btn-secondary" id="openRedditBtn" style="margin-top:8px;">Open Reddit login page</button>
+  </div>
+
+  <!-- Account Not Found State -->
+  <div class="state-message" id="notFound" style="display:none;">
+    <div class="icon">🔍</div>
+    <p id="notFoundMsg">Account not found in RedditPipe</p>
+    <button class="btn-sm btn-secondary" id="openAppBtn">Open RedditPipe</button>
+  </div>
+
+  <!-- Opportunity List -->
+  <div class="opp-list" id="oppList" style="display:none;">
+    <div class="opp-list-title">Queued Opportunities (<span id="oppCount">0</span>)</div>
+    <div id="oppCards"></div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <div class="icon">📭</div>
+    <p>No opportunities queued for this account.<br>Check RedditPipe for other accounts or run a new search.</p>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-left">
+      <button class="btn-organic" id="logOrganicBtn" title="Log an organic (non-citation) post">
+        🌿 Log organic
+      </button>
+    </div>
+    <a href="#" id="openAppLink">Open RedditPipe ↗</a>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- 2FA Modal -->
+  <div class="modal-overlay" id="tfaModal">
+    <div class="modal">
+      <h3>Enter 2FA code for <span id="tfaUsername"></span></h3>
+      <input type="text" id="tfaInput" maxlength="6" placeholder="000000" autocomplete="off">
+      <div class="modal-actions">
+        <button class="btn-sm btn-secondary" id="tfaCancel">Cancel</button>
+        <button class="btn-sm btn-primary" id="tfaSubmit">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Permalink Modal -->
+  <div class="modal-overlay" id="permalinkModal">
+    <div class="modal">
+      <h3>Mark as Published</h3>
+      <p style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;" id="permalinkOppInfo"></p>
+      <p style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Paste the permalink URL of your posted comment. Right-click your comment → "Copy link".</p>
+      <input type="text" id="permalinkInput" placeholder="https://www.reddit.com/r/.../comments/.../..." autocomplete="off" style="width:100%;font-size:12px;">
+      <div class="modal-actions">
+        <button class="btn-sm btn-secondary" id="permalinkCancel">Cancel</button>
+        <button class="btn-sm btn-primary" id="permalinkSubmit">Verify &amp; Publish</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
