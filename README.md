@@ -1,6 +1,16 @@
 # RedditPipe Companion Chrome Extension
 
+[![Latest Release](https://img.shields.io/github/v/release/mikevillargr/redditpipe-companion-chrome-extension)](https://github.com/mikevillargr/redditpipe-companion-chrome-extension/releases/latest)
+[![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
+
 Chrome extension companion for RedditPipe — Reddit outreach pipeline manager.
+
+## 📥 Download
+
+**Latest Version**: [v1.0.0](https://github.com/mikevillargr/redditpipe-companion-chrome-extension/releases/latest)
+
+- **From GitHub Releases**: [Download redditpipe-extension-1.0.0.zip](https://github.com/mikevillargr/redditpipe-companion-chrome-extension/releases/download/v1.0.0/redditpipe-extension-1.0.0.zip)
+- **From VPS**: [http://76.13.191.149:3200/redditpipe-extension.zip](http://76.13.191.149:3200/redditpipe-extension.zip)
 
 ## Features
 
