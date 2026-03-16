@@ -331,38 +331,50 @@
       // Insert generated text into comment box
       let inserted = false;
 
-      // Try textarea first
-      const textarea = commentBox.querySelector('textarea');
-      if (textarea) {
-        textarea.value = result.aiDraftReply;
-        textarea.dispatchEvent(new Event('input', { bubbles: true }));
-        textarea.focus();
-        inserted = true;
-      } 
-      // Try contenteditable element
-      else if (commentBox.getAttribute('contenteditable') === 'true') {
-        commentBox.textContent = result.aiDraftReply;
-        commentBox.dispatchEvent(new Event('input', { bubbles: true }));
-        commentBox.focus();
-        inserted = true;
-      }
-      // Try finding contenteditable in parent
-      else {
-        const contentEditable = commentBox.querySelector('[contenteditable="true"]');
-        if (contentEditable) {
-          contentEditable.textContent = result.aiDraftReply;
-          contentEditable.dispatchEvent(new Event('input', { bubbles: true }));
-          contentEditable.focus();
-          inserted = true;
+      // For shreddit-composer, find the actual input element
+      let targetElement = null;
+      
+      if (commentBox.tagName === 'SHREDDIT-COMPOSER') {
+        // Try to find textarea in shadow DOM or adjacent elements
+        targetElement = document.querySelector('shreddit-composer textarea') ||
+                       document.querySelector('shreddit-composer [contenteditable="true"]') ||
+                       commentBox.shadowRoot?.querySelector('textarea') ||
+                       commentBox.shadowRoot?.querySelector('[contenteditable="true"]');
+      } else {
+        // Try textarea first
+        targetElement = commentBox.querySelector('textarea');
+        
+        // Try contenteditable
+        if (!targetElement && commentBox.getAttribute('contenteditable') === 'true') {
+          targetElement = commentBox;
+        }
+        
+        // Try finding contenteditable in children
+        if (!targetElement) {
+          targetElement = commentBox.querySelector('[contenteditable="true"]');
         }
       }
 
-      if (inserted) {
+      console.log('[RedditPipe AI Generator] Target element for insertion:', targetElement);
+
+      if (targetElement) {
+        if (targetElement.tagName === 'TEXTAREA') {
+          targetElement.value = result.aiDraftReply;
+          targetElement.dispatchEvent(new Event('input', { bubbles: true }));
+          targetElement.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
+          targetElement.textContent = result.aiDraftReply;
+          targetElement.dispatchEvent(new Event('input', { bubbles: true }));
+          targetElement.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        targetElement.focus();
+        inserted = true;
         showNotification('AI reply generated! ✨', 'success');
       } else {
         // Copy to clipboard as fallback
         await navigator.clipboard.writeText(result.aiDraftReply);
         showNotification('AI reply copied to clipboard! ✨', 'success');
+        console.log('[RedditPipe AI Generator] Could not find input element, copied to clipboard');
       }
 
     } catch (err) {
