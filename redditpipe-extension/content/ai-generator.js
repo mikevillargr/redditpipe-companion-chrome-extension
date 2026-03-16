@@ -307,9 +307,10 @@
         chrome.runtime.sendMessage(
           { type: 'GENERATE_ON_DEMAND', params },
           (response) => {
+            console.log('[RedditPipe AI Generator] Response from background:', response);
             if (chrome.runtime.lastError) {
               reject(new Error(chrome.runtime.lastError.message));
-            } else if (response.error) {
+            } else if (response && response.error) {
               reject(new Error(response.error));
             } else {
               resolve(response);
@@ -318,9 +319,14 @@
         );
       });
       
+      console.log('[RedditPipe AI Generator] Result:', result);
+      
       if (!result || !result.aiDraftReply) {
+        console.error('[RedditPipe AI Generator] Invalid result:', result);
         throw new Error('No AI reply generated');
       }
+      
+      console.log('[RedditPipe AI Generator] AI Draft Reply:', result.aiDraftReply);
 
       // Insert generated text into comment box
       let inserted = false;
