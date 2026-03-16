@@ -130,44 +130,39 @@
       // We need to find which comment has an active reply box
       
       if (commentBox.tagName === 'SHREDDIT-COMPOSER') {
-        // The composer might be inside a comment thread structure
-        // Try to find the parent comment by traversing up and looking for shreddit-comment
-        let current = commentBox.parentElement;
-        let depth = 0;
+        console.log('[RedditPipe AI Generator] Looking for parent comment of composer:', commentBox);
+        console.log('[RedditPipe AI Generator] Composer parent:', commentBox.parentElement);
+        console.log('[RedditPipe AI Generator] Composer parent parent:', commentBox.parentElement?.parentElement);
         
-        while (current && depth < 10) {
-          // Check if this element contains a shreddit-comment as a child
-          const nearbyComment = current.querySelector('shreddit-comment');
-          if (nearbyComment) {
-            // Make sure this comment is before the composer in the DOM
-            if (nearbyComment.compareDocumentPosition(commentBox) & Node.DOCUMENT_POSITION_FOLLOWING) {
-              parentComment = nearbyComment;
-              break;
-            }
-          }
-          
-          // Check siblings of current element
-          if (current.previousElementSibling?.tagName === 'SHREDDIT-COMMENT') {
-            parentComment = current.previousElementSibling;
-            break;
-          }
-          
-          current = current.parentElement;
-          depth++;
-        }
+        // Simple approach: find all shreddit-comments on the page
+        const allComments = Array.from(document.querySelectorAll('shreddit-comment'));
+        console.log('[RedditPipe AI Generator] Found', allComments.length, 'total comments on page');
         
-        // If still not found, look for the last shreddit-comment before the composer in document order
-        if (!parentComment) {
-          const allComments = Array.from(document.querySelectorAll('shreddit-comment'));
-          for (let i = allComments.length - 1; i >= 0; i--) {
-            const comment = allComments[i];
-            const position = comment.compareDocumentPosition(commentBox);
-            // Check if comment comes before composer in document order
-            if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
-              parentComment = comment;
-              break;
-            }
+        // Find the comment that is closest to this composer in the DOM
+        // The reply composer usually appears right after the comment you're replying to
+        let closestComment = null;
+        let minDistance = Infinity;
+        
+        allComments.forEach((comment, index) => {
+          // Calculate rough distance by comparing positions in the DOM
+          const rect1 = comment.getBoundingClientRect();
+          const rect2 = commentBox.getBoundingClientRect();
+          
+          // If comment is above the composer (negative distance means comment is above)
+          const distance = rect2.top - rect1.bottom;
+          
+          console.log(`[RedditPipe AI Generator] Comment ${index}: distance=${distance}, author=${comment.getAttribute('author')}`);
+          
+          // We want the comment that's just above the composer (small positive distance)
+          if (distance >= 0 && distance < minDistance) {
+            minDistance = distance;
+            closestComment = comment;
           }
+        });
+        
+        if (closestComment) {
+          console.log('[RedditPipe AI Generator] Found closest comment with distance:', minDistance);
+          parentComment = closestComment;
         }
       } else {
         // Traditional approach for non-shreddit-composer
