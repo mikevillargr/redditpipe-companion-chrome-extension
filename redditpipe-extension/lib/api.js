@@ -3,7 +3,7 @@
  * Shared API helpers for communicating with the RedditPipe server.
  */
 
-const DEFAULT_SERVER_URL = 'http://76.13.191.149:3200';
+const DEFAULT_SERVER_URL = 'http://76.13.191.149:8000';
 
 async function getServerUrl() {
   return new Promise((resolve) => {
