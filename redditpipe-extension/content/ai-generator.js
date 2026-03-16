@@ -188,20 +188,18 @@
     });
 
     // Find the appropriate place to insert the button
-    // For shreddit-composer, we need to insert into the visible part
+    // For shreddit-composer, we need to insert OUTSIDE it (it uses Shadow DOM)
     let container = commentBox;
     
     // Special handling for shreddit-composer
     if (commentBox.tagName === 'SHREDDIT-COMPOSER') {
-      // Try to find the content area inside shreddit-composer
-      const contentArea = commentBox.querySelector('[slot="text-inputs"]') || 
-                         commentBox.querySelector('.composer-content') ||
-                         commentBox;
-      
-      // Insert at the top of the composer
-      contentArea.insertBefore(button, contentArea.firstChild);
-      console.log('[RedditPipe AI Generator] Button inserted into shreddit-composer');
-      return;
+      // Insert button right before the shreddit-composer element
+      // This avoids Shadow DOM issues
+      if (commentBox.parentElement) {
+        commentBox.parentElement.insertBefore(button, commentBox);
+        console.log('[RedditPipe AI Generator] Button inserted before shreddit-composer');
+        return;
+      }
     }
     
     // For contenteditable textbox, find the parent form/container
