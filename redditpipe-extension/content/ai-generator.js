@@ -356,6 +356,17 @@
       }
 
       console.log('[RedditPipe AI Generator] Target element for insertion:', targetElement);
+      console.log('[RedditPipe AI Generator] ===== GENERATED TEXT (copy from here) =====');
+      console.log(result.aiDraftReply);
+      console.log('[RedditPipe AI Generator] ===== END GENERATED TEXT =====');
+
+      // Always copy to clipboard as backup
+      try {
+        await navigator.clipboard.writeText(result.aiDraftReply);
+        console.log('[RedditPipe AI Generator] Copied to clipboard successfully');
+      } catch (clipErr) {
+        console.error('[RedditPipe AI Generator] Clipboard copy failed:', clipErr);
+      }
 
       if (targetElement) {
         if (targetElement.tagName === 'TEXTAREA') {
@@ -369,12 +380,10 @@
         }
         targetElement.focus();
         inserted = true;
-        showNotification('AI reply generated! ✨', 'success');
+        showNotification('AI reply generated & copied to clipboard! ✨', 'success');
       } else {
-        // Copy to clipboard as fallback
-        await navigator.clipboard.writeText(result.aiDraftReply);
         showNotification('AI reply copied to clipboard! ✨', 'success');
-        console.log('[RedditPipe AI Generator] Could not find input element, copied to clipboard');
+        console.log('[RedditPipe AI Generator] Could not find input element, text is in clipboard');
       }
 
     } catch (err) {
