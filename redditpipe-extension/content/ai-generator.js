@@ -50,7 +50,6 @@
   // Extract thread context from current page
   function extractThreadContext() {
     const url = window.location.href;
-    const isNewReddit = document.querySelector('[data-testid="post-container"]') !== null;
     
     let threadTitle = '';
     let threadBody = '';
@@ -69,29 +68,56 @@
       threadId = threadIdMatch[1];
     }
 
-    if (isNewReddit) {
-      // New Reddit
-      const titleEl = document.querySelector('[data-test-id="post-content"] h1, [data-adclicklocation="title"] h1');
-      if (titleEl) threadTitle = titleEl.textContent.trim();
+    // Try multiple selectors for title (new Reddit has various layouts)
+    const titleSelectors = [
+      'h1[slot="title"]', // New Reddit shreddit-post
+      '[data-test-id="post-content"] h1',
+      '[data-adclicklocation="title"] h1',
+      'shreddit-post h1',
+      '.thing.link .title a.title', // Old Reddit
+    ];
 
-      const bodyEl = document.querySelector('[data-test-id="post-content"] [data-click-id="text"]');
-      if (bodyEl) threadBody = bodyEl.textContent.trim();
-    } else {
-      // Old Reddit
-      const titleEl = document.querySelector('.thing.link .title a.title');
-      if (titleEl) threadTitle = titleEl.textContent.trim();
-
-      const bodyEl = document.querySelector('.thing.link .usertext-body .md');
-      if (bodyEl) threadBody = bodyEl.textContent.trim();
+    for (const selector of titleSelectors) {
+      const titleEl = document.querySelector(selector);
+      if (titleEl && titleEl.textContent.trim()) {
+        threadTitle = titleEl.textContent.trim();
+        break;
+      }
     }
 
-    return {
+    // Try multiple selectors for body
+    const bodySelectors = [
+      '[slot="text-body"]', // New Reddit shreddit-post
+      '[data-test-id="post-content"] [data-click-id="text"]',
+      'shreddit-post [slot="text-body"]',
+      '.thing.link .usertext-body .md', // Old Reddit
+    ];
+
+    for (const selector of bodySelectors) {
+      const bodyEl = document.querySelector(selector);
+      if (bodyEl && bodyEl.textContent.trim()) {
+        threadBody = bodyEl.textContent.trim();
+        break;
+      }
+    }
+
+    const context = {
       threadTitle,
       threadBody,
       threadId,
       threadUrl: url,
       subreddit,
     };
+
+    console.log('[RedditPipe AI Generator] Extracted thread context:', context);
+
+    // Validate required fields
+    if (!threadTitle || !subreddit) {
+      console.error('[RedditPipe AI Generator] Missing required context:', { threadTitle, subreddit });
+      return null;
+    }
+
+    return context;
   }
 
   // Extract parent comment context if replying to a comment
@@ -250,10 +276,11 @@
     button.style.cursor = 'not-allowed';
 
     try {
-      // Extract thread context
+      // Extract context
       const threadContext = extractThreadContext();
-      if (!threadContext.threadTitle || !threadContext.subreddit) {
-        throw new Error('Could not extract thread information');
+      
+      if (!threadContext) {
+        throw new Error('Could not extract thread information. Make sure you are on a Reddit thread page.');
       }
 
       // Check if replying to a comment
