@@ -26,12 +26,17 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.runtime.onStartup.addListener(() => {
+  setupAlarm();
   restoreState().then(() => poll());
 });
 
 // Also restore immediately when the script loads — MV3 workers can go idle
 // and lose in-memory state, so we need to rehydrate every time the worker wakes.
-restoreState();
+// Also ensure alarm is set up and poll immediately.
+restoreState().then(() => {
+  setupAlarm();
+  poll();
+});
 
 // Restore persisted state from storage
 async function restoreState() {
@@ -59,10 +64,10 @@ function persist(partial) {
 // ── Alarm / Polling ────────────────────────────────────────────────────────────
 
 async function setupAlarm() {
-  const { pollInterval = 5 } = await chrome.storage.sync.get({ pollInterval: 5 });
+  const { pollInterval = 2 } = await chrome.storage.sync.get({ pollInterval: 2 });
   chrome.alarms.clear(ALARM_NAME);
   chrome.alarms.create(ALARM_NAME, { periodInMinutes: pollInterval });
-  poll();
+  console.log('[RedditPipe] Alarm set up with interval:', pollInterval, 'minutes');
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -70,11 +75,13 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 async function poll() {
+  console.log('[RedditPipe] Polling started at', new Date().toLocaleTimeString());
   try {
     const connResult = await api.checkConnection();
     persist({ connected: connResult.connected });
 
     if (!connResult.connected) {
+      console.log('[RedditPipe] Not connected to backend');
       updateBadge();
       return;
     }
@@ -89,6 +96,7 @@ async function poll() {
     }
 
     updateBadge();
+    console.log('[RedditPipe] Polling completed successfully');
   } catch (err) {
     console.error('[RedditPipe] Poll error:', err);
     persist({ connected: false });
@@ -131,6 +139,7 @@ async function fetchOpportunitiesForAccount(accountId) {
 
 function updateBadge() {
   const count = (state.opportunities || []).filter((o) => o.status === 'new').length;
+  console.log('[RedditPipe] Updating badge - new opportunities:', count);
   if (!state.connected) {
     chrome.action.setBadgeText({ text: '!' });
     chrome.action.setBadgeBackgroundColor({ color: '#6b7280' });
