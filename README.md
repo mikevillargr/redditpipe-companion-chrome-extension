@@ -7,13 +7,20 @@ Chrome extension companion for RedditPipe — Reddit outreach pipeline manager.
 
 ## 📥 Download
 
-**Latest Version**: [v1.0.0](https://github.com/mikevillargr/redditpipe-companion-chrome-extension/releases/latest)
+**Latest Version**: [v1.1.0](https://github.com/mikevillargr/redditpipe-companion-chrome-extension/releases/latest)
 
-- **From GitHub Releases**: [Download redditpipe-extension-1.0.0.zip](https://github.com/mikevillargr/redditpipe-companion-chrome-extension/releases/download/v1.0.0/redditpipe-extension-1.0.0.zip)
+- **From GitHub Releases**: [Download redditpipe-extension-1.1.0.zip](https://github.com/mikevillargr/redditpipe-companion-chrome-extension/releases/download/v1.1.0/redditpipe-extension-1.1.0.zip)
 - **From VPS**: [http://76.13.191.149:3200/redditpipe-extension.zip](http://76.13.191.149:3200/redditpipe-extension.zip)
 
 ## Features
 
+### ✨ NEW in v1.1.0: On-Demand AI Generation
+- **Generate AI Reply Button**: Click to generate AI responses while casually browsing Reddit
+- **Smart Context Detection**: Automatically detects whether you're replying to a thread or nested comment
+- **RedditPipe Integration**: Uses the same generation rules and account settings as the dashboard
+- **Instant Results**: Generated text appears directly in your comment box
+
+### Core Features
 - **Account Detection**: Automatically detects logged-in Reddit account
 - **Opportunity Queue**: View and manage queued Reddit outreach opportunities
 - **Auto-Verification**: Automatically verifies posted comments
