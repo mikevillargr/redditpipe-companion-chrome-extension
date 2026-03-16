@@ -6,11 +6,20 @@
 (async function() {
   'use strict';
 
-  const api = globalThis.RedditPipeAPI;
+  // Wait for API to be loaded (it's loaded by lib/api.js in the same content script)
+  let api = globalThis.RedditPipeAPI;
   if (!api) {
-    console.error('[RedditPipe AI Generator] API not loaded');
-    return;
+    console.log('[RedditPipe AI Generator] Waiting for API to load...');
+    // Wait a bit for api.js to load
+    await new Promise(resolve => setTimeout(resolve, 100));
+    api = globalThis.RedditPipeAPI;
+    if (!api) {
+      console.error('[RedditPipe AI Generator] API not loaded after waiting');
+      return;
+    }
   }
+  
+  console.log('[RedditPipe AI Generator] API loaded successfully');
 
   let currentAccountId = null;
   let currentAccountUsername = null;
