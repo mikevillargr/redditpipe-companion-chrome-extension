@@ -376,6 +376,11 @@
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== Node.ELEMENT_NODE) continue;
 
+          // Log what was added to help debug
+          if (node.tagName && (node.querySelector?.('textarea') || node.querySelector?.('[contenteditable="true"]'))) {
+            console.log('[RedditPipe AI Generator] Detected element with text input:', node.tagName, node.className, node);
+          }
+
           // Try multiple selectors for different Reddit UI variations
           const selectors = [
             '[data-testid="comment-submission-form-richtext"]',
@@ -388,6 +393,10 @@
             const boxes = node.matches?.(selector)
               ? [node]
               : (node.querySelectorAll?.(selector) || []);
+
+            if (boxes.length > 0) {
+              console.log(`[RedditPipe AI Generator] MutationObserver found ${boxes.length} boxes matching "${selector}"`);
+            }
 
             for (const box of boxes) {
               injectAIButton(box);
