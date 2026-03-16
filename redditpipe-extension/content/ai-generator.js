@@ -123,29 +123,82 @@
   // Extract parent comment context if replying to a comment
   function extractParentCommentContext(commentBox) {
     try {
-      // Find the parent comment element
-      let parentComment = commentBox.closest('[data-testid="comment"]');
-      if (!parentComment) {
-        // Try old Reddit
-        parentComment = commentBox.closest('.thing.comment');
+      let parentComment = null;
+      
+      // For shreddit-composer, we need to look at the page structure
+      // The composer appears when you click "Reply" on a comment
+      // We need to find which comment has an active reply box
+      
+      if (commentBox.tagName === 'SHREDDIT-COMPOSER') {
+        // Look for the comment that contains this composer or is right before it
+        const allComments = document.querySelectorAll('shreddit-comment');
+        
+        for (const comment of allComments) {
+          // Check if this comment contains the composer or if composer is right after it
+          if (comment.contains(commentBox) || comment.nextElementSibling === commentBox) {
+            parentComment = comment;
+            break;
+          }
+        }
+        
+        // If not found, try looking at siblings
+        if (!parentComment) {
+          let current = commentBox.previousElementSibling;
+          while (current && !parentComment) {
+            if (current.tagName === 'SHREDDIT-COMMENT') {
+              parentComment = current;
+              break;
+            }
+            current = current.previousElementSibling;
+          }
+        }
+      } else {
+        // Traditional approach for non-shreddit-composer
+        parentComment = commentBox.closest('[data-testid="comment"]') || 
+                       commentBox.closest('.thing.comment') ||
+                       commentBox.closest('shreddit-comment');
       }
 
-      if (!parentComment) return null;
+      if (!parentComment) {
+        console.log('[RedditPipe AI Generator] No parent comment found - replying to thread');
+        return null;
+      }
 
-      // Extract comment body
+      console.log('[RedditPipe AI Generator] Found parent comment:', parentComment);
+
+      // Extract comment body and author
       let commentBody = '';
       let commentAuthor = '';
 
-      // New Reddit
-      const bodyEl = parentComment.querySelector('[data-testid="comment"] > div > div:nth-child(2)');
-      const authorEl = parentComment.querySelector('a[href*="/user/"]');
-      
-      if (bodyEl) {
-        commentBody = bodyEl.textContent.trim();
+      // Try shreddit-comment
+      if (parentComment.tagName === 'SHREDDIT-COMMENT') {
+        // Get author from attribute
+        commentAuthor = parentComment.getAttribute('author') || '';
+        
+        // Try to get comment body from shadow DOM or visible text
+        const bodySlot = parentComment.querySelector('[slot="comment"]');
+        if (bodySlot) {
+          commentBody = bodySlot.textContent.trim();
+        } else {
+          // Fallback: get all text content
+          commentBody = parentComment.textContent.trim();
+          // Remove author name and metadata
+          commentBody = commentBody.replace(new RegExp(`^${commentAuthor}.*?\\n`, 'm'), '').trim();
+        }
       }
-      if (authorEl) {
-        const authorMatch = authorEl.getAttribute('href').match(/\/user\/([^/?#]+)/);
-        if (authorMatch) commentAuthor = authorMatch[1];
+      
+      // Try new Reddit data-testid
+      if (!commentBody) {
+        const bodyEl = parentComment.querySelector('[data-testid="comment"] > div > div:nth-child(2)');
+        if (bodyEl) commentBody = bodyEl.textContent.trim();
+      }
+      
+      if (!commentAuthor) {
+        const authorEl = parentComment.querySelector('a[href*="/user/"]');
+        if (authorEl) {
+          const authorMatch = authorEl.getAttribute('href').match(/\/user\/([^/?#]+)/);
+          if (authorMatch) commentAuthor = authorMatch[1];
+        }
       }
 
       // Old Reddit fallback
@@ -157,6 +210,8 @@
         const oldAuthorEl = parentComment.querySelector('.author');
         if (oldAuthorEl) commentAuthor = oldAuthorEl.textContent.trim();
       }
+
+      console.log('[RedditPipe AI Generator] Extracted parent comment:', { commentAuthor, commentBodyLength: commentBody.length });
 
       return commentBody && commentAuthor ? { commentBody, commentAuthor } : null;
     } catch (err) {
