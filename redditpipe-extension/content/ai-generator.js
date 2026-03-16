@@ -172,22 +172,35 @@
     });
 
     // Find the appropriate place to insert the button
+    // For contenteditable textbox, find the parent form/container
+    let container = commentBox;
+    if (commentBox.getAttribute('contenteditable') === 'true') {
+      // Find parent form or container
+      container = commentBox.closest('form') || commentBox.closest('[class*="comment"]') || commentBox.parentElement;
+    }
+
     // New Reddit: insert after the markdown toolbar
-    let insertTarget = commentBox.querySelector('[role="toolbar"]');
+    let insertTarget = container.querySelector('[role="toolbar"]');
     if (insertTarget) {
       insertTarget.parentElement.insertBefore(button, insertTarget.nextSibling);
       return;
     }
 
-    // Old Reddit: insert before the textarea
-    const textarea = commentBox.querySelector('textarea');
+    // Try to insert before the textbox/textarea
+    const textarea = container.querySelector('textarea');
     if (textarea) {
       textarea.parentElement.insertBefore(button, textarea);
       return;
     }
 
-    // Fallback: prepend to comment box
-    commentBox.insertBefore(button, commentBox.firstChild);
+    // For contenteditable, insert before it
+    if (commentBox.getAttribute('contenteditable') === 'true') {
+      commentBox.parentElement.insertBefore(button, commentBox);
+      return;
+    }
+
+    // Fallback: prepend to container
+    container.insertBefore(button, container.firstChild);
   }
 
   // Handle AI generation
@@ -237,12 +250,35 @@
       }
 
       // Insert generated text into comment box
+      let inserted = false;
+
+      // Try textarea first
       const textarea = commentBox.querySelector('textarea');
       if (textarea) {
         textarea.value = result.aiDraftReply;
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
         textarea.focus();
-        
+        inserted = true;
+      } 
+      // Try contenteditable element
+      else if (commentBox.getAttribute('contenteditable') === 'true') {
+        commentBox.textContent = result.aiDraftReply;
+        commentBox.dispatchEvent(new Event('input', { bubbles: true }));
+        commentBox.focus();
+        inserted = true;
+      }
+      // Try finding contenteditable in parent
+      else {
+        const contentEditable = commentBox.querySelector('[contenteditable="true"]');
+        if (contentEditable) {
+          contentEditable.textContent = result.aiDraftReply;
+          contentEditable.dispatchEvent(new Event('input', { bubbles: true }));
+          contentEditable.focus();
+          inserted = true;
+        }
+      }
+
+      if (inserted) {
         showNotification('AI reply generated! ✨', 'success');
       } else {
         // Copy to clipboard as fallback
@@ -322,22 +358,22 @@
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== Node.ELEMENT_NODE) continue;
 
-          // New Reddit comment box
-          const newRedditBoxes = node.matches?.('[data-testid="comment-submission-form-richtext"]')
-            ? [node]
-            : (node.querySelectorAll?.('[data-testid="comment-submission-form-richtext"]') || []);
+          // Try multiple selectors for different Reddit UI variations
+          const selectors = [
+            '[data-testid="comment-submission-form-richtext"]',
+            '[contenteditable="true"][role="textbox"]', // New Reddit contenteditable
+            '.usertext-edit', // Old Reddit
+            'form[id*="commentForm"]', // Generic comment form
+          ];
 
-          for (const box of newRedditBoxes) {
-            injectAIButton(box);
-          }
+          for (const selector of selectors) {
+            const boxes = node.matches?.(selector)
+              ? [node]
+              : (node.querySelectorAll?.(selector) || []);
 
-          // Old Reddit comment box
-          const oldRedditBoxes = node.matches?.('.usertext-edit')
-            ? [node]
-            : (node.querySelectorAll?.('.usertext-edit') || []);
-
-          for (const box of oldRedditBoxes) {
-            injectAIButton(box);
+            for (const box of boxes) {
+              injectAIButton(box);
+            }
           }
         }
       }
@@ -345,8 +381,19 @@
 
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Also inject into existing comment boxes
-    document.querySelectorAll('[data-testid="comment-submission-form-richtext"], .usertext-edit').forEach(injectAIButton);
+    // Also inject into existing comment boxes - try all selectors
+    const allSelectors = [
+      '[data-testid="comment-submission-form-richtext"]',
+      '[contenteditable="true"][role="textbox"]',
+      '.usertext-edit',
+      'form[id*="commentForm"]',
+    ];
+    
+    allSelectors.forEach(selector => {
+      document.querySelectorAll(selector).forEach(injectAIButton);
+    });
+
+    console.log('[RedditPipe AI Generator] Observing comment boxes');
   }
 
   // Start observing after page load
