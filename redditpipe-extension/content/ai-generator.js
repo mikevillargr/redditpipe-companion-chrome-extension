@@ -302,8 +302,21 @@
 
       console.log('[RedditPipe AI Generator] Generating with params:', params);
 
-      // Call API
-      const result = await api.generateOnDemand(params);
+      // Call API via background service worker to avoid CORS issues
+      const result = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(
+          { type: 'GENERATE_ON_DEMAND', params },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+            } else if (response.error) {
+              reject(new Error(response.error));
+            } else {
+              resolve(response);
+            }
+          }
+        );
+      });
       
       if (!result || !result.aiDraftReply) {
         throw new Error('No AI reply generated');

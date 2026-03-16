@@ -218,6 +218,17 @@ async function handleMessage(msg, sender) {
       return result;
     }
 
+    case 'GENERATE_ON_DEMAND': {
+      // Route API call through background to avoid CORS in content script
+      try {
+        const result = await api.generateOnDemand(msg.params);
+        return result;
+      } catch (err) {
+        console.error('[Background] Generate on-demand failed:', err);
+        return { error: err.message };
+      }
+    }
+
     case 'MANUAL_VERIFY_OPPORTUNITY': {
       const result = await api.manualVerifyOpportunity(msg.opportunityId, msg.permalinkUrl);
       if (state.accountId) await fetchOpportunitiesForAccount(state.accountId);
