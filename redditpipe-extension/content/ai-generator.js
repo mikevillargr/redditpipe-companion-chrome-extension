@@ -407,11 +407,17 @@
       'form[id*="commentForm"]',
     ];
     
+    let foundCount = 0;
     allSelectors.forEach(selector => {
-      document.querySelectorAll(selector).forEach(injectAIButton);
+      const elements = document.querySelectorAll(selector);
+      console.log(`[RedditPipe AI Generator] Found ${elements.length} elements matching "${selector}"`);
+      elements.forEach(el => {
+        injectAIButton(el);
+        foundCount++;
+      });
     });
 
-    console.log('[RedditPipe AI Generator] Observing comment boxes');
+    console.log(`[RedditPipe AI Generator] Observing comment boxes (injected into ${foundCount} existing boxes)`);
   }
 
   // Start observing after page load
