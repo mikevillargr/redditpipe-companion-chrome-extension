@@ -130,26 +130,43 @@
       // We need to find which comment has an active reply box
       
       if (commentBox.tagName === 'SHREDDIT-COMPOSER') {
-        // Look for the comment that contains this composer or is right before it
-        const allComments = document.querySelectorAll('shreddit-comment');
+        // The composer might be inside a comment thread structure
+        // Try to find the parent comment by traversing up and looking for shreddit-comment
+        let current = commentBox.parentElement;
+        let depth = 0;
         
-        for (const comment of allComments) {
-          // Check if this comment contains the composer or if composer is right after it
-          if (comment.contains(commentBox) || comment.nextElementSibling === commentBox) {
-            parentComment = comment;
-            break;
-          }
-        }
-        
-        // If not found, try looking at siblings
-        if (!parentComment) {
-          let current = commentBox.previousElementSibling;
-          while (current && !parentComment) {
-            if (current.tagName === 'SHREDDIT-COMMENT') {
-              parentComment = current;
+        while (current && depth < 10) {
+          // Check if this element contains a shreddit-comment as a child
+          const nearbyComment = current.querySelector('shreddit-comment');
+          if (nearbyComment) {
+            // Make sure this comment is before the composer in the DOM
+            if (nearbyComment.compareDocumentPosition(commentBox) & Node.DOCUMENT_POSITION_FOLLOWING) {
+              parentComment = nearbyComment;
               break;
             }
-            current = current.previousElementSibling;
+          }
+          
+          // Check siblings of current element
+          if (current.previousElementSibling?.tagName === 'SHREDDIT-COMMENT') {
+            parentComment = current.previousElementSibling;
+            break;
+          }
+          
+          current = current.parentElement;
+          depth++;
+        }
+        
+        // If still not found, look for the last shreddit-comment before the composer in document order
+        if (!parentComment) {
+          const allComments = Array.from(document.querySelectorAll('shreddit-comment'));
+          for (let i = allComments.length - 1; i >= 0; i--) {
+            const comment = allComments[i];
+            const position = comment.compareDocumentPosition(commentBox);
+            // Check if comment comes before composer in document order
+            if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+              parentComment = comment;
+              break;
+            }
           }
         }
       } else {
