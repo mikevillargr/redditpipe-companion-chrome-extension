@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-03-16
+
+### Added
+- **On-Demand AI Generation**: Generate AI replies while casually browsing Reddit
+  - "✨ Generate AI Reply" button automatically appears in all Reddit comment boxes
+  - Smart context detection: knows whether you're replying to a thread or nested comment
+  - Uses the same AI generation rules and settings as RedditPipe dashboard
+  - Works seamlessly with existing AI draft feature
+  - Supports both new and old Reddit
+  - Generated replies are inserted directly into the comment box
+  - Beautiful gradient button with hover effects and loading states
+  - Toast notifications for success/error feedback
+
+### Backend
+- New `/api/generate/on-demand` endpoint for extension-initiated AI generation
+- Accepts thread context, parent comment context, account ID, and optional client ID
+- Uses account personality, writing style, and sample comments for generation
+- Automatically selects first active client if none specified
+
+### Technical
+- New content script: `ai-generator.js` for UI injection and generation flow
+- Added `generateOnDemand()` API method in `lib/api.js`
+- MutationObserver watches for comment boxes and injects buttons dynamically
+- Extracts thread title, body, URL, and subreddit from current page
+- Detects parent comment context for nested replies
+
 ## [1.0.0] - 2026-03-13
 
 ### Added

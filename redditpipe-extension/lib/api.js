@@ -94,6 +94,14 @@ async function updatePileOnDraft(opportunityId, pileOnId, aiDraftReply) {
   });
 }
 
+/** Generate AI reply on-demand for any Reddit thread/comment */
+async function generateOnDemand(params) {
+  return apiFetch('/api/generate/on-demand', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+}
+
 // Export for use in service worker (importScripts) and ES module contexts
 if (typeof globalThis !== 'undefined') {
   globalThis.RedditPipeAPI = {
@@ -109,5 +117,6 @@ if (typeof globalThis !== 'undefined') {
     createPileOn,
     publishPileOn,
     updatePileOnDraft,
+    generateOnDemand,
   };
 }

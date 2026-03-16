@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "RedditPipe",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Companion extension for RedditPipe — Reddit outreach pipeline manager",
   "permissions": [
     "activeTab",
@@ -34,6 +34,11 @@
     {
       "matches": ["https://www.reddit.com/*", "https://old.reddit.com/*"],
       "js": ["content/detector.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.reddit.com/*", "https://old.reddit.com/*"],
+      "js": ["lib/api.js", "content/ai-generator.js"],
       "run_at": "document_idle"
     }
   ],
