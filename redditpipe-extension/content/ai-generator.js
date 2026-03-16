@@ -161,12 +161,14 @@
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
-      margin: 8px 8px 0 0;
+      margin: 8px 8px 8px 0;
       display: inline-flex;
       align-items: center;
       gap: 4px;
       transition: all 0.2s;
       box-shadow: 0 2px 4px rgba(249, 115, 22, 0.3);
+      position: relative;
+      z-index: 1000;
     `;
 
     button.addEventListener('mouseenter', () => {
@@ -186,8 +188,23 @@
     });
 
     // Find the appropriate place to insert the button
-    // For contenteditable textbox, find the parent form/container
+    // For shreddit-composer, we need to insert into the visible part
     let container = commentBox;
+    
+    // Special handling for shreddit-composer
+    if (commentBox.tagName === 'SHREDDIT-COMPOSER') {
+      // Try to find the content area inside shreddit-composer
+      const contentArea = commentBox.querySelector('[slot="text-inputs"]') || 
+                         commentBox.querySelector('.composer-content') ||
+                         commentBox;
+      
+      // Insert at the top of the composer
+      contentArea.insertBefore(button, contentArea.firstChild);
+      console.log('[RedditPipe AI Generator] Button inserted into shreddit-composer');
+      return;
+    }
+    
+    // For contenteditable textbox, find the parent form/container
     if (commentBox.getAttribute('contenteditable') === 'true') {
       // Find parent form or container
       container = commentBox.closest('form') || commentBox.closest('[class*="comment"]') || commentBox.parentElement;
