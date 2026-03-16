@@ -383,6 +383,7 @@
 
           // Try multiple selectors for different Reddit UI variations
           const selectors = [
+            'shreddit-composer', // New Reddit composer element
             '[data-testid="comment-submission-form-richtext"]',
             '[contenteditable="true"][role="textbox"]', // New Reddit contenteditable
             '.usertext-edit', // Old Reddit
@@ -410,6 +411,7 @@
 
     // Also inject into existing comment boxes - try all selectors
     const allSelectors = [
+      'shreddit-composer',
       '[data-testid="comment-submission-form-richtext"]',
       '[contenteditable="true"][role="textbox"]',
       '.usertext-edit',
