@@ -132,8 +132,13 @@
 
   // Create and inject AI generation button
   function injectAIButton(commentBox) {
+    console.log('[RedditPipe AI Generator] Attempting to inject button into:', commentBox);
+    
     // Check if button already exists
-    if (commentBox.querySelector('.rp-ai-generate-btn')) return;
+    if (commentBox.querySelector('.rp-ai-generate-btn')) {
+      console.log('[RedditPipe AI Generator] Button already exists, skipping');
+      return;
+    }
 
     const button = document.createElement('button');
     button.className = 'rp-ai-generate-btn';
@@ -183,6 +188,7 @@
     let insertTarget = container.querySelector('[role="toolbar"]');
     if (insertTarget) {
       insertTarget.parentElement.insertBefore(button, insertTarget.nextSibling);
+      console.log('[RedditPipe AI Generator] Button inserted after toolbar');
       return;
     }
 
@@ -190,17 +196,20 @@
     const textarea = container.querySelector('textarea');
     if (textarea) {
       textarea.parentElement.insertBefore(button, textarea);
+      console.log('[RedditPipe AI Generator] Button inserted before textarea');
       return;
     }
 
     // For contenteditable, insert before it
     if (commentBox.getAttribute('contenteditable') === 'true') {
       commentBox.parentElement.insertBefore(button, commentBox);
+      console.log('[RedditPipe AI Generator] Button inserted before contenteditable');
       return;
     }
 
     // Fallback: prepend to container
     container.insertBefore(button, container.firstChild);
+    console.log('[RedditPipe AI Generator] Button inserted (fallback) into container:', container);
   }
 
   // Handle AI generation
