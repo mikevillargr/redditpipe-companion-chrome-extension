@@ -59,10 +59,10 @@
     const dot = $('connDot');
     if (state.connected) {
       dot.className = 'conn-dot connected';
-      dot.title = 'Connected to RedditPipe';
+      dot.title = 'Connected to Narwhal';
     } else {
       dot.className = 'conn-dot disconnected';
-      dot.title = 'Cannot reach RedditPipe server';
+      dot.title = 'Cannot reach Narwhal server';
     }
   }
 
@@ -86,7 +86,7 @@
       notFound.style.display = 'block';
       acctSection.style.display = 'none';
       $('safetyBar').style.display = 'none';
-      $('notFoundMsg').textContent = `Account u/${state.currentRedditUser} not found in RedditPipe`;
+      $('notFoundMsg').textContent = `Account u/${state.currentRedditUser} not found in Narwhal`;
       return;
     }
 
